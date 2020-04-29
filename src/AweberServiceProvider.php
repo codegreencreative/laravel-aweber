@@ -13,7 +13,7 @@ use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 
-class LaravelSamlIdpServiceProvider extends ServiceProvider
+class AweberServiceProvider extends ServiceProvider
 {
     /**
      * Bootstrap the application events.
@@ -35,6 +35,8 @@ class LaravelSamlIdpServiceProvider extends ServiceProvider
         $this->configure();
         $this->offerPublishing();
         $this->registerServices();
+        $this->registerFacades();
+        $this->registerCommands();
     }
 
     /**
@@ -70,6 +72,13 @@ class LaravelSamlIdpServiceProvider extends ServiceProvider
     {
     }
 
+    public function registerFacades()
+    {
+        $this->app->singleton('aweber', function ($app) {
+            return new Aweber;
+        });
+    }
+
     /**
      * Register routes for the service provider
      *
@@ -83,5 +92,18 @@ class LaravelSamlIdpServiceProvider extends ServiceProvider
             ->middleware('web')->group(function () {
                 $this->loadRoutesFrom(__DIR__ . '/../routes/web.php');
             });
+    }
+    /**
+     * Register the artisan commands.
+     *
+     * @return void
+     */
+    private function registerCommands()
+    {
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                \CodeGreenCreative\Aweber\Console\AweberAuthorize::class,
+            ]);
+        }
     }
 }
