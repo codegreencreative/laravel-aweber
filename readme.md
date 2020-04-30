@@ -65,3 +65,5 @@ This package does not implement all functions of the Aweber API. Use at your own
 
 ## Contribution Guide
 Should you add functionality to this package, please create a pull request. Code additions will only be considered through pull requests.
+
+Code written must be compatible with Laravel 4.1+ and PHP 5.3+.
