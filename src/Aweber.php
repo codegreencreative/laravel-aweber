@@ -2,8 +2,8 @@
 
 namespace CodeGreenCreative\Aweber;
 
-use CodeGreenCreative\Aweber\Lists;
-use CodeGreenCreative\Aweber\Subscribers;
+use CodeGreenCreative\Aweber\Api\Lists;
+use CodeGreenCreative\Aweber\Api\Subscribers;
 use League\Oauth2\Client\Provider\GenericProvider;
 
 class Aweber
@@ -14,19 +14,23 @@ class Aweber
      */
     public function __construct()
     {
-        $store = config('aweber.cache');
-        if (cache()->store($store)->has('aweber.token')) {
-            # code...
+    }
+
+    public function lists($list_id = null)
+    {
+        try {
+            return new Lists($list_id);
+        } catch (\GuzzleHttp\Exception\ClientException $e) {
+            dd($e->getMessage());
         }
     }
 
-    public function lists()
+    public function subscribers($list_id = null, $subscriber_id = null)
     {
-        return new Lists;
-    }
-
-    public function subscribers()
-    {
-        return new Subscribers;
+        try {
+            return new Subscribers($list_id, $subscriber_id);
+        } catch (\GuzzleHttp\Exception\ClientException $e) {
+            dd($e->getMessage());
+        }
     }
 }
