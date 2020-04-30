@@ -32,7 +32,7 @@ class Subscribers extends AweberClient
      */
     public function all()
     {
-        $response = $this->client->request('get', 'lists/' . $this->list_id . '/subscribers');
+        $response = $this->client->request('GET', 'lists/' . $this->list_id . '/subscribers');
         return json_decode($response->getBody(), true);
     }
 
@@ -45,7 +45,7 @@ class Subscribers extends AweberClient
      */
     public function find($subscriber_id)
     {
-        $response = $this->client->request('get', 'lists/' . $this->list_id . '/subscribers/' . $subscriber_id);
+        $response = $this->client->request('GET', 'lists/' . $this->list_id . '/subscribers/' . $subscriber_id);
         if ($response->getStatusCode() == 200) {
             // return json_decode($response->getBody(), true);
             $this->subscriber = json_decode($response->getBody(), true);
@@ -74,7 +74,7 @@ class Subscribers extends AweberClient
      */
     public function add($options)
     {
-        $response = $this->client->request('post', 'lists/' . $this->list_id . '/subscribers', array(
+        $response = $this->client->request('POST', 'lists/' . $this->list_id . '/subscribers', array(
             'json' => $options
         ));
         return json_decode($response->getBody(), true);
@@ -93,7 +93,7 @@ class Subscribers extends AweberClient
     public function move($destination_list_id)
     {
         try {
-            $response = $this->client->request('post', 'lists/' . $this->list_id . '/subscribers/' . $this->subscriber['id'], array(
+            $response = $this->client->request('POST', 'lists/' . $this->list_id . '/subscribers/' . $this->subscriber['id'], array(
                 'json' => array(
                     'ws.op' => 'move',
                     'list_link' => $this->api_url . 'accounts/' . $this->account_id . '/lists/' . $destination_list_id

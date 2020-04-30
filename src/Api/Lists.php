@@ -29,7 +29,7 @@ class Lists extends AweberClient
      */
     public function all()
     {
-        $response = $this->client->request('get', 'lists');
+        $response = $this->client->request('GET', 'lists');
         return json_decode($response->getBody(), true);
     }
 
@@ -41,7 +41,7 @@ class Lists extends AweberClient
      */
     public function find($list_id)
     {
-        $response = $this->client->request('get', 'lists/' . $list_id);
+        $response = $this->client->request('GET', 'lists/' . $list_id);
         if ($response->getStatusCode() == 200) {
             // return json_decode($response->getBody(), true);
             $this->list = json_decode($response->getBody(), true);
@@ -57,7 +57,7 @@ class Lists extends AweberClient
      */
     public function tags(int $list_id)
     {
-        $response = $this->client->request('get', 'lists/' . $list_id . '/tags');
+        $response = $this->client->request('GET', 'lists/' . $list_id . '/tags');
         return json_decode($response->getBody(), true);
     }
 
@@ -77,7 +77,7 @@ class Lists extends AweberClient
      */
     public function getCampaignsAttribute()
     {
-        $response = $this->client->request('get', $this->list['campaigns_collection_link']);
+        $response = $this->client->request('GET', $this->list['campaigns_collection_link']);
         return json_decode($response->getBody(), true);
     }
 
@@ -88,7 +88,7 @@ class Lists extends AweberClient
      */
     public function getCustomFieldsAttribute()
     {
-        $response = $this->client->request('get', $this->list['custom_fields_collection_link']);
+        $response = $this->client->request('GET', $this->list['custom_fields_collection_link']);
         return json_decode($response->getBody(), true);
     }
 
@@ -99,7 +99,7 @@ class Lists extends AweberClient
      */
     public function getSubscribersAttribute()
     {
-        $response = $this->client->request('get', $this->list['subscribers_collection_link']);
+        $response = $this->client->request('GET', $this->list['subscribers_collection_link']);
         return json_decode($response->getBody(), true);
     }
 

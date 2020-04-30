@@ -35,7 +35,7 @@ class AweberClient
         // Retrieve the token object from the cache
         $this->token = unserialize(cache()->store($this->store)->get('aweber.token'));
         // If the token is expired, request a new access token using the refresh token
-        if ($this->token->hasExpired()) {
+        if ($this->token['expires_at']->lt(\Carbon\Carbon::now())) {
             $this->refreshAccessToken();
         }
         $this->api_url = config('aweber.api_url');
@@ -46,7 +46,7 @@ class AweberClient
         $this->client = new \GuzzleHttp\Client(array(
             'base_uri' => $this->api_url . 'accounts/' . $this->account_id . '/',
             'headers' => array(
-                'Authorization' => 'Bearer ' . $this->token->getToken()
+                'Authorization' => 'Bearer ' . $this->token['access_token']
             )
         ));
     }
@@ -85,8 +85,18 @@ class AweberClient
             'urlResourceOwnerDetails' => 'https://api.aweber.com/1.0/accounts'
         ));
 
-        $authorization_url = $provider->getAuthorizationUrl();
-        $state = $provider->getState();
+        $params = array(
+            // 'state' => '6ffd88e3ca5cfda6f96423856cb29ef1',
+            'scope' => implode(' ', $scopes),
+            'response_type' => 'code',
+            'approval_prompt' => 'auto',
+            'redirect_uri' => $redirect_uri,
+            'client_id' => $this->client_id
+        );
+
+        $query = http_build_query($params, '', '&', PHP_QUERY_RFC3986);
+
+        $authorization_url = sprintf('%s/authorize?%s', $this->oauth_url, $query);
 
         // Create a new Guzzle client
         $client = new \GuzzleHttp\Client(array(
@@ -114,9 +124,21 @@ class AweberClient
                 $header = $response->getHeader('Location');
                 $location = parse_url($header[0], PHP_URL_QUERY);
                 parse_str($location, $output);
-                $token = $provider->getAccessToken('authorization_code', array(
-                    'code' => $output['code']
+
+                $response = $client->post($this->oauth_url . '/token', array(
+                    'auth' => array(
+                        $this->client_id,
+                        $this->client_secret
+                    ),
+                    'json' => array(
+                        'grant_type' => 'authorization_code',
+                        'redirect_uri' => $redirect_uri,
+                        'code' => $output['code']
+                    )
                 ));
+                $token = json_decode($response->getBody(), true);
+                $token['expires_at'] = \Carbon\Carbon::now()->addSeconds($token['expires_in']);
+
                 cache()->store($this->store)->forever('aweber.token', serialize($token));
             }
         }
@@ -137,7 +159,7 @@ class AweberClient
             ),
             'json' => array(
                 'grant_type' => 'refresh_token',
-                'refresh_token' => $this->token->getRefreshToken()
+                'refresh_token' => $this->token['refresh_token']
             )
         ));
         $this->token = json_decode($response->getBody(), true);
@@ -149,7 +171,7 @@ class AweberClient
         $client = new \GuzzleHttp\Client(array(
             'base_uri' => $this->api_url,
             'headers' => array(
-                'Authorization' => 'Bearer ' . $this->token->getToken()
+                'Authorization' => 'Bearer ' . $this->token['access_token']
             )
         ));
         $response = $client->request('get', 'accounts');
