@@ -102,14 +102,7 @@ class AweberAuthorize extends Command
                 $token = $provider->getAccessToken('authorization_code', [
                     'code' => $output['code']
                 ]);
-                var_dump($token);
-                // cache()->store($store)->forever('aweber.token', serialize([
-                //     "access_token" => $token->getToken(),
-                //     "refresh_token" => $token->getRefreshToken(),
-                //     "expires_in" => $token->getEndOfLife(),
-                //     "token_type" => $extra['token_type'],
-                //     "scope" => $extra['scope'],
-                // ]));
+                cache()->store($store)->forever('aweber.token', serialize($token));
             }
         }
     }
