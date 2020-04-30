@@ -2,6 +2,7 @@
     "name": "codegreencreative/laravel-aweber",
     "description": "Laravel OAuth Aweber",
     "homepage": "https://codegreencreative.com/",
+    "license": "MIT",
     "require": {
         "php": "^5.3|^5.6|^7.0",
         "ext-json": "*",
