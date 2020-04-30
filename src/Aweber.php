@@ -18,19 +18,11 @@ class Aweber
 
     public function lists($list_id = null)
     {
-        try {
-            return new Lists($list_id);
-        } catch (\GuzzleHttp\Exception\ClientException $e) {
-            dd($e->getMessage());
-        }
+        return new Lists($list_id);
     }
 
     public function subscribers($list_id = null, $subscriber_id = null)
     {
-        try {
-            return new Subscribers($list_id, $subscriber_id);
-        } catch (\GuzzleHttp\Exception\ClientException $e) {
-            dd($e->getMessage());
-        }
+        return new Subscribers($list_id, $subscriber_id);
     }
 }
