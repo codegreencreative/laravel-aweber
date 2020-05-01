@@ -2,8 +2,14 @@
 
 namespace CodeGreenCreative\Aweber;
 
+use CodeGreenCreative\Aweber\Exceptions\AweberException;
+
 class AweberClient
 {
+    public $classes = array(
+        'accounts' => '\CodeGreenCreative\Aweber\Api\Accounts',
+        'lists' => '\CodeGreenCreative\Aweber\Api\Lists',
+    );
     public $client;
     protected $store;
     protected $api_url;
@@ -34,8 +40,9 @@ class AweberClient
         }
         // Retrieve the token object from the cache
         $this->token = unserialize(cache()->store($this->store)->get('aweber.token'));
+
         // If the token is expired, request a new access token using the refresh token
-        if ($this->token['expires_at']->lt(\Carbon\Carbon::now())) {
+        if (empty($this->token['expires_at']) || $this->token['expires_at']->lt(\Carbon\Carbon::now())) {
             $this->refreshAccessToken();
         }
         $this->api_url = config('aweber.api_url');
@@ -74,17 +81,6 @@ class AweberClient
             'submit' => 'Allow access'
         );
         // Create a OAuth2 client configured to use OAuth for authentication
-        $provider = new \League\OAuth2\Client\Provider\GenericProvider(array(
-            'clientId' => $this->client_id,
-            'clientSecret' => $this->client_secret,
-            'redirectUri' => $redirect_uri,
-            'scopes' => $scopes,
-            'scopeSeparator' => ' ',
-            'urlAuthorize' => $this->oauth_url . '/authorize',
-            'urlAccessToken' => $this->oauth_url . '/token',
-            'urlResourceOwnerDetails' => 'https://api.aweber.com/1.0/accounts'
-        ));
-
         $params = array(
             // 'state' => '6ffd88e3ca5cfda6f96423856cb29ef1',
             'scope' => implode(' ', $scopes),
@@ -93,11 +89,12 @@ class AweberClient
             'redirect_uri' => $redirect_uri,
             'client_id' => $this->client_id
         );
-
-        $query = http_build_query($params, '', '&', PHP_QUERY_RFC3986);
-
-        $authorization_url = sprintf('%s/authorize?%s', $this->oauth_url, $query);
-
+        // Build authorization URL
+        $authorization_url = sprintf(
+            '%s/authorize?%s',
+            $this->oauth_url,
+            http_build_query($params, '', '&', PHP_QUERY_RFC3986)
+        );
         // Create a new Guzzle client
         $client = new \GuzzleHttp\Client(array(
             'cookies' => true,
@@ -105,7 +102,6 @@ class AweberClient
         ));
         // Get authorization URL
         $response = $client->request('GET', $authorization_url);
-        // $this->info('Body: ' . $response->getBody());
         if ($response->getStatusCode() == 200) {
             libxml_use_internal_errors(true);
             $doc = new \DOMDocument('1.0', 'utf-8');
@@ -163,7 +159,38 @@ class AweberClient
             )
         ));
         $this->token = json_decode($response->getBody(), true);
+        $this->token['expires_at'] = \Carbon\Carbon::now()->addSeconds($this->token['expires_in']);
         cache()->store($this->store)->forever('aweber.token', serialize($this->token));
+    }
+
+    /**
+     * Handle an Aweber API request
+     *
+     * @param  string $method
+     * @param  string $path
+     * @param  array  $data
+     * @return \Illuminate\Support\Collection
+     */
+    public function request($method, $path, $data = array())
+    {
+        $key = $method == 'GET' ? 'query' : 'json';
+        $response = $this->client->request($method, $path, array(
+            $key => $data,
+            'headers' => array(
+                'Content-Type' => 'application/json',
+                'Accept' => 'application/json'
+            )
+        ));
+        if ($response->getStatusCode() == 200) {
+            return json_decode($response->getBody());
+            // $data = new \Illuminate\Support\Collection(json_decode($response->getBody()));
+        } elseif ($response->getStatusCode() == 201) {
+            // Created
+            $header = $response->getHeader('Location');
+            $path_parts = explode('/', parse_url($header[0], PHP_URL_PATH));
+            // Return the ID of the resource
+            return array_pop($path_parts);
+        }
     }
 
     private function findAccount()

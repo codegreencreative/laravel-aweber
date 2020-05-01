@@ -2,63 +2,40 @@
 
 namespace CodeGreenCreative\Aweber\Api;
 
+use Aweber;
 use CodeGreenCreative\Aweber\AweberClient;
+use CodeGreenCreative\Aweber\Contracts\AweberApiContract;
 
-class Lists extends AweberClient
+class Lists extends AweberClient implements AweberApiContract
 {
     private $list;
 
     /**
-     * If a list ID is supplied, find the list
+     * Paginate through all lists
      *
-     * @param CodeGreenCreative\Aweber\Api\List | void
-     */
-    public function __construct($list_id = null)
-    {
-        parent::__construct();
-
-        if (! is_null($list_id)) {
-            return $this->find($list_id);
-        }
-    }
-
-    /**
-     * Get all lists in the account
-     *
+     * @param  integer $start
+     * @param  integer $limit
      * @return array
      */
-    public function all()
+    public function paginate($start = 0, $limit = 100)
     {
-        $response = $this->client->request('GET', 'lists');
-        return json_decode($response->getBody(), true);
+        if ($limit > 100) {
+            throw new AweberException('Limit on record sets is 100.');
+        }
+
+        return $this->request('GET', 'lists', array('ws.start' => $start, 'ws.size' => $limit));
     }
 
     /**
      * Find a list by ID
      *
-     * @param  integer $list_id [description]
+     * @param  integer $list_id
      * @return CodeGreenCreative\Aweber\Api\List
      */
-    public function find($list_id)
+    public function load($list_id)
     {
-        $response = $this->client->request('GET', 'lists/' . $list_id);
-        if ($response->getStatusCode() == 200) {
-            // return json_decode($response->getBody(), true);
-            $this->list = json_decode($response->getBody(), true);
-            return $this;
-        }
-    }
-
-    /**
-     * Get tags for the list
-     *
-     * @param  integer $list_id
-     * @return array
-     */
-    public function tags(int $list_id)
-    {
-        $response = $this->client->request('GET', 'lists/' . $list_id . '/tags');
-        return json_decode($response->getBody(), true);
+        $this->list = $this->request('GET', 'lists/' . $list_id);
+        return $this;
     }
 
     /**
@@ -71,37 +48,47 @@ class Lists extends AweberClient
     }
 
     /**
-     * Get campaigns for the list
+     * Get tags for the list
      *
      * @return array
      */
-    public function getCampaignsAttribute()
+    public function getTagsAttribute()
     {
-        $response = $this->client->request('GET', $this->list['campaigns_collection_link']);
-        return json_decode($response->getBody(), true);
+        return $this->request('GET', 'lists/' . $this->list->id . '/tags');
     }
+
+    /**
+     * Get campaigns for the list
+     *
+     * NOT IMPLEMENTED
+     *
+     * @return array
+     */
+    // public function campaigns()
+    // {
+    // }
 
     /**
      * Get custom fields for the list
      *
+     * NOT IMPLEMENTED
+     *
      * @return array
      */
-    public function getCustomFieldsAttribute()
-    {
-        $response = $this->client->request('GET', $this->list['custom_fields_collection_link']);
-        return json_decode($response->getBody(), true);
-    }
+    // public function customFields()
+    // {
+    // }
 
     /**
      * Get Subscribers to the list
      *
+     * NOT IMPLEMENTED
+     *
      * @return array
      */
-    public function getSubscribersAttribute()
-    {
-        $response = $this->client->request('GET', $this->list['subscribers_collection_link']);
-        return json_decode($response->getBody(), true);
-    }
+    // public function subscribers()
+    // {
+    // }
 
     /**
      * Get total subscribed subscribers to the list
@@ -110,7 +97,7 @@ class Lists extends AweberClient
      */
     public function getTotalSubscribedSubscribersAttribute()
     {
-        return (int) $this->list['total_subscribed_subscribers'];
+        return (int) $this->list->total_subscribed_subscribers;
     }
 
     /**
@@ -120,7 +107,7 @@ class Lists extends AweberClient
      */
     public function getTotalSubscribersAttribute()
     {
-        return (int) $this->list['total_subscribers'];
+        return (int) $this->list->total_subscribers;
     }
 
     /**
@@ -130,7 +117,7 @@ class Lists extends AweberClient
      */
     public function getTotalSubscribersSubscribedTodayAttribute()
     {
-        return (int) $this->list['total_subscribers_subscribed_today'];
+        return (int) $this->list->total_subscribers_subscribed_today;
     }
 
     /**
@@ -140,7 +127,7 @@ class Lists extends AweberClient
      */
     public function getTotalSubscribersSubscribedYesterdayAttribute()
     {
-        return (int) $this->list['total_subscribers_subscribed_yesterday'];
+        return (int) $this->list->total_subscribers_subscribed_yesterday;
     }
 
     /**
@@ -150,7 +137,7 @@ class Lists extends AweberClient
      */
     public function getTotalUnconfirmedSubscribersAttribute()
     {
-        return (int) $this->list['total_unconfirmed_subscribers'];
+        return (int) $this->list->total_unconfirmed_subscribers;
     }
 
     /**
@@ -160,7 +147,7 @@ class Lists extends AweberClient
      */
     public function getTotalUnsubscribedSubscribersAttribute()
     {
-        return (int) $this->list['total_unsubscribed_subscribers'];
+        return (int) $this->list->total_unsubscribed_subscribers;
     }
 
     /**

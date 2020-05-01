@@ -30,32 +30,142 @@ By supplying your Aweber username (email address) and password along with your c
 
 Below you will find some of the functionality of this package. Not all are listed here.
 
+#### Accounts
+
 ```php
-// Returns all lists available in your account
-$lists = Aweber::lists()->all();
+// Paginate all accounts
+// $start integer default 0
+// $limit integer default 100 cannot be greater than 100
+$accounts = Aweber::accounts()->paginate($start, $limit);
 
-// Find a specific list
-$list = Aweber::lists()->find($list_id);
+// Load a single account
+// $account_id integer
+$account = Aweber::accounts()->load($account_id);
+// Will return the orignal account object returned by Aweber
+$account->account;
+```
 
-// Get subscribers on a list
-$subscribers = Aweber::lists($list_id)->subscribers;
-$subscribers = Aweber::subscribers($list_id)->all();
+#### Broadcasts
 
-// Get all campaigns on a list
-$campaigns = Aweber::lists($list_id)->campaigns;
+```php
+// Paginate all broadcasts for a list based on status
+// $start integer default 0
+// $limit integer default 100 cannot be greater than 100
+$broadcasts = Aweber::broadcasts()
+    ->list($list_id)
+    ->status('draft')
+    ->paginate($start, $limit);
 
-// Get all custom fields on a list
-$custom_fields = Aweber::lists($list_id)->custom_fields;
+// Load a single broadcast
+// $account_id integer
+$broadcast = Aweber::broadcasts()
+    ->list($list_id)
+    ->load($broadcast_id);
+// Will return the orignal broadcast object returned by Aweber
+$broadcast->broadcast;
+```
 
-// Get tags on a list
-$tags = Aweber::lists()->tags($list_id);
+#### Campaigns
 
-// Get a subscriber
-$subscriber = Aweber::subscribers($list_id)->find($subscriber_id);
-$subscriber = Aweber::subscribers($list_id, $subscriber_id);
+```php
+// Paginate all campaigns for a list
+// $start integer default 0
+// $limit integer default 100 cannot be greater than 100
+$campaigns = Aweber::campaigns()
+    ->list($list_id)
+    ->paginate($start, $limit);
+
+// Load a single campaign
+// $account_id integer
+$campaign = Aweber::campaigns()
+    ->list($list_id)
+    ->load($campaign_id);
+// Will return the orignal campaign object returned by Aweber
+$campaign->campaign;
+```
+
+#### Custom Fields
+
+```php
+// Paginate all custom fields for a list
+// $start integer default 0
+// $limit integer default 100 cannot be greater than 100
+$custom_fields = Aweber::customFields()
+    ->list($list_id)
+    ->paginate($start, $limit);
+
+// Load a single custom field
+// $account_id integer
+$custom_field = Aweber::customFields()
+    ->list($list_id)
+    ->load($custom_field_id);
+// Will return the orignal custom field object returned by Aweber
+$custom_field->custom_field;
+```
+
+#### Lists
+
+```php
+// Paginate all lists
+// $start integer default 0
+// $limit integer default 100 cannot be greater than 100
+$lists = Aweber::lists()->paginate($start, $limit);
+
+// Load a single list
+// $list_id integer
+$list = Aweber::lists()->load($list_id);
+// Will return the orignal list object returned by Aweber
+$list->list;
+
+// This will return an array containing up to 500 tags 
+// sorted by descending popularity.
+$tags = $list->tags;
+// Get total subscribed subscribers for a list
+$subscribers = $list->total_subscribed_subscribers;
+// Get total subscribers for a list
+$subscribers = $list->total_subscribers;
+// Get total subscribers subscribed today for a list
+$subscribers = $list->total_subscribers_subscribed_today;
+// Get total subscribers subscribed yesterday for a list
+$subscribers = $list->total_subscribers_subscribed_yesterday;
+// Get total unconfirmed subscribers for a list
+$subscribers = $list->total_unconfirmed_subscribers;
+// Get total unsubscribed subscribers for a list
+$subscribers = $list->total_unsubscribed_subscribers;
+```
+
+#### Subscribers
+```php
+// Paginate all subscribers on a list
+// $start integer default 0
+// $limit integer default 100 cannot be greater than 100
+$lists = Aweber::subscribers()
+    ->list($list_id)
+    ->paginate($start, $limit);
+
+// Load a single subscriber
+$subscriber = Aweber::subscribers()
+    ->list($list_id)
+    ->find($subscriber_id);
+// Will return the orignal subscriber object returned by Aweber
+$list->list;
+
+// Add a subscriber to a list
+$subscriber = Aweber::subscribers()->list($list_id)->add([
+    'custom_fields' => [
+        'field' => 'value',
+    ],
+    'email' => 'test@test.com',
+    'name' => 'Test Test',
+    'strict_custom_fields' => true,
+    'tags' => [
+    ]
+]);
 
 // Move a subscriber from one list to another
-$subscriber = Aweber::subscribers($list_id, $subscriber_id);
+$subscriber = Aweber::subscribers()
+    ->list($list_id)
+    ->load($subscriber_id);
 $subscriber->move($destination_list_id);
 ```
 

@@ -8,21 +8,26 @@ use League\Oauth2\Client\Provider\GenericProvider;
 
 class Aweber
 {
+    public $classes = array(
+        'accounts' => '\CodeGreenCreative\Aweber\Api\Accounts',
+        'broadcasts' => '\CodeGreenCreative\Aweber\Api\Broadcasts',
+        'campaigns' => '\CodeGreenCreative\Aweber\Api\Campaigns',
+        'customFields' => '\CodeGreenCreative\Aweber\Api\CustomFields',
+        'lists' => '\CodeGreenCreative\Aweber\Api\Lists',
+        'subscribers' => '\CodeGreenCreative\Aweber\Api\Subscribers',
+    );
+
     /**
-     * [methodName description]
-     * @return [type] [description]
+     * [__call description]
+     *
+     * @param  [type] $name      [description]
+     * @param  [type] $arguments [description]
+     * @return [type]            [description]
      */
-    public function __construct()
+    public function __call($name, $arguments)
     {
-    }
-
-    public function lists($list_id = null)
-    {
-        return new Lists($list_id);
-    }
-
-    public function subscribers($list_id = null, $subscriber_id = null)
-    {
-        return new Subscribers($list_id, $subscriber_id);
+        if (array_key_exists($name, $this->classes)) {
+            return new $this->classes[$name];
+        }
     }
 }

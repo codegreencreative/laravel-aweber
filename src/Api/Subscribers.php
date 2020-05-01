@@ -3,54 +3,55 @@
 namespace CodeGreenCreative\Aweber\Api;
 
 use CodeGreenCreative\Aweber\AweberClient;
+use CodeGreenCreative\Aweber\Contracts\AweberApiContract;
 use CodeGreenCreative\Aweber\Exceptions\AweberException;
 
-class Subscribers extends AweberClient
+class Subscribers extends AweberClient implements AweberApiContract
 {
     private $list_id;
     private $subscriber;
 
     /**
-     * [__construct description]
+     * Paginate through subscribers on a list
      *
-     * @param integer $list_id
-     */
-    public function __construct($list_id = null, $subscriber_id = null)
-    {
-        parent::__construct();
-
-        $this->list_id = $list_id;
-        if (! is_null($subscriber_id)) {
-            return $this->find($subscriber_id);
-        }
-    }
-
-    /**
-     * Get all subscribers on a list
-     *
+     * @param  integer $start
+     * @param  integer $limit
      * @return array
      */
-    public function all()
+    public function paginate($start = 0, $limit = 100)
     {
-        $response = $this->client->request('GET', 'lists/' . $this->list_id . '/subscribers');
-        return json_decode($response->getBody(), true);
+        if ($limit > 100) {
+            throw new AweberException('Limit on record sets is 100.');
+        }
+
+        return $this->request('GET', 'lists/' . $this->list_id . '/subscribers', array(
+            'ws.start' => $start,
+            'ws.size' => $limit
+        ));
     }
 
-
     /**
-     * Find a subscriber on a list
+     * Find a subscriber by ID
      *
      * @param  integer $subscriber_id
-     * @return CodeGreenCreative\Aweber\Api\Subscriber
+     * @return CodeGreenCreative\Aweber\Api\List
      */
-    public function find($subscriber_id)
+    public function load($subscriber_id)
     {
-        $response = $this->client->request('GET', 'lists/' . $this->list_id . '/subscribers/' . $subscriber_id);
-        if ($response->getStatusCode() == 200) {
-            // return json_decode($response->getBody(), true);
-            $this->subscriber = json_decode($response->getBody(), true);
-            return $this;
-        }
+        $this->subscriber = $this->request('GET', 'lists/' . $this->list_id . '/subscribers/' . $subscriber_id);
+        return $this;
+    }
+
+    /**
+     * Set the list to be used
+     *
+     * @param  integer $list_id
+     * @return self
+     */
+    public function list($list_id)
+    {
+        $this->list_id = $list_id;
+        return $this;
     }
 
     /**
@@ -74,14 +75,8 @@ class Subscribers extends AweberClient
      */
     public function add($options)
     {
-        $response = $this->client->request('POST', 'lists/' . $this->list_id . '/subscribers', array(
-            'json' => $options
-        ));
-        return json_decode($response->getBody(), true);
-    }
-
-    public function update()
-    {
+        $subscriber_id = $this->request('POST', 'lists/' . $this->list_id . '/subscribers', $options);
+        return $this->load($subscriber_id);
     }
 
     /**
@@ -92,22 +87,10 @@ class Subscribers extends AweberClient
      */
     public function move($destination_list_id)
     {
-        try {
-            $response = $this->client->request('POST', 'lists/' . $this->list_id . '/subscribers/' . $this->subscriber['id'], array(
-                'json' => array(
-                    'ws.op' => 'move',
-                    'list_link' => $this->api_url . 'accounts/' . $this->account_id . '/lists/' . $destination_list_id
-                ),
-                'headers' => array(
-                    'Content-Type' => 'application/json',
-                    'Accept' => 'application/json'
-                )
-            ));
-            return json_decode($response->getBody(), true);
-        } catch (\GuzzleHttp\Exception\ClientException $e) {
-            $response = json_decode($e->getResponse()->getBody(), true);
-            throw new AweberException($response['error']['message'], true);
-        }
+        $this->request('POST', 'lists/' . $this->list_id . '/subscribers/' . $this->subscriber->id, array(
+            'ws.op' => 'move',
+            'list_link' => $this->api_url . 'accounts/' . $this->account_id . '/lists/' . $destination_list_id
+        ));
     }
 
     /**
