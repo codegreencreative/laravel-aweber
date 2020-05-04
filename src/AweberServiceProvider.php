@@ -20,7 +20,7 @@ class AweberServiceProvider extends ServiceProvider
      *
      * @return void
      */
-    public function boot(Router $router)
+    public function boot()
     {
         $this->registerRoutes();
     }
