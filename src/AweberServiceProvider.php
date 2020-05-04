@@ -22,7 +22,8 @@ class AweberServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        $this->registerRoutes();
+        $this->package('codegreencreative/laravel-aweber');
+        // $this->registerRoutes();
     }
 
     /**
@@ -32,11 +33,11 @@ class AweberServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        $this->configure();
-        $this->offerPublishing();
-        $this->registerServices();
+        // $this->configure();
+        // $this->offerPublishing();
+        // $this->registerServices();
         $this->registerFacades();
-        $this->registerCommands();
+        // $this->registerCommands();
     }
 
     /**
