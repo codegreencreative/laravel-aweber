@@ -27,10 +27,10 @@ class AweberClient
      */
     public function __construct()
     {
-        $this->store = Config::get('aweber.cache');
-        $this->oauth_url = Config::get('aweber.oauth_url');
-        $this->client_id = Config::get('aweber.client_id');
-        $this->client_secret = Config::get('aweber.client_secret');
+        $this->store = Config::get('laravel-aweber::cache');
+        $this->oauth_url = Config::get('laravel-aweber::oauth_url');
+        $this->client_id = Config::get('laravel-aweber::client_id');
+        $this->client_secret = Config::get('laravel-aweber::client_secret');
         if (empty($this->client_id)) {
             throw new AweberException('Client ID is not set');
         }
@@ -43,13 +43,13 @@ class AweberClient
             $this->getNewAccessToken();
         }
         // Retrieve the token object from the cache
-        $this->token = unserialize(Cache::get('aweber.token'));
+        $this->token = unserialize(Cache::get('laravel-aweber::token'));
 
         // If the token is expired, request a new access token using the refresh token
         if (empty($this->token['expires_at']) || $this->token['expires_at']->lt(\Carbon\Carbon::now())) {
             $this->refreshAccessToken();
         }
-        $this->api_url = Config::get('aweber.api_url');
+        $this->api_url = Config::get('laravel-aweber::api_url');
         // Find account
         $this->account_id = $this->findAccount();
 
@@ -68,19 +68,19 @@ class AweberClient
      */
     private function getNewAccessToken()
     {
-        $redirect_uri = Config::get('aweber.redirect_uri');
+        $redirect_uri = Config::get('laravel-aweber::redirect_uri');
         if (empty($redirect_uri)) {
             throw new AweberException('Redirect URI is not set');
         }
-        $username = Config::get('aweber.username');
+        $username = Config::get('laravel-aweber::username');
         if (empty($username)) {
             throw new AweberException('Aweber username is not set');
         }
-        $password = Config::get('aweber.password');
+        $password = Config::get('laravel-aweber::password');
         if (empty($password)) {
             throw new AweberException('Aweber password is not set');
         }
-        $scopes = Config::get('aweber.scopes');
+        $scopes = Config::get('laravel-aweber::scopes');
         // Set up form parameters to use when requesting a code
         $form_params = array(
             'username' => $username,
