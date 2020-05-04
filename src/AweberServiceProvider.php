@@ -57,9 +57,9 @@ class AweberServiceProvider extends ServiceProvider
     public function offerPublishing()
     {
         if ($this->app->runningInConsole()) {
-            $this->publishes([
+            $this->publishes(array(
                 __DIR__ . '/../config/aweber.php' => config_path('aweber.php'),
-            ], 'aweber_config');
+            ), 'aweber_config');
         }
     }
 
@@ -101,9 +101,9 @@ class AweberServiceProvider extends ServiceProvider
     private function registerCommands()
     {
         if ($this->app->runningInConsole()) {
-            $this->commands([
+            $this->commands(array(
                 \CodeGreenCreative\Aweber\Console\AweberAuthorize::class,
-            ]);
+            ));
         }
     }
 }
