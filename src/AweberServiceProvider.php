@@ -16,13 +16,19 @@ use Illuminate\Support\ServiceProvider;
 class AweberServiceProvider extends ServiceProvider
 {
     /**
+     * Indicates if loading of the provider is deferred.
+     *
+     * @var bool
+     */
+    protected $defer = false;
+
+    /**
      * Bootstrap the application events.
      *
      * @return void
      */
     public function boot()
     {
-        $this->package('codegreencreative/laravel-aweber');
         // $this->registerRoutes();
     }
 
@@ -34,7 +40,7 @@ class AweberServiceProvider extends ServiceProvider
     public function register()
     {
         // $this->configure();
-        // $this->offerPublishing();
+        $this->offerPublishing();
         // $this->registerServices();
         $this->registerFacades();
         // $this->registerCommands();
@@ -57,7 +63,11 @@ class AweberServiceProvider extends ServiceProvider
      */
     public function offerPublishing()
     {
-        if ($this->app->runningInConsole()) {
+        $app = $this->app;
+
+        if (version_compare($app::VERSION, '5.0') < 0) {
+            \Config::package('codegreencreative/laravel-aweber', 'laravel-aweber');
+        } elseif ($this->app->runningInConsole()) {
             $this->publishes(array(
                 __DIR__ . '/../config/aweber.php' => config_path('aweber.php'),
             ), 'aweber_config');
@@ -106,5 +116,15 @@ class AweberServiceProvider extends ServiceProvider
                 '\CodeGreenCreative\Aweber\Console\AweberAuthorize',
             ));
         }
+    }
+
+    /**
+     * Get the services provided by the provider.
+     *
+     * @return array
+     */
+    public function provides()
+    {
+        return array('laravel-aweber');
     }
 }

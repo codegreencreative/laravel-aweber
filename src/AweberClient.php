@@ -2,6 +2,8 @@
 
 namespace CodeGreenCreative\Aweber;
 
+use Cache;
+use Config;
 use CodeGreenCreative\Aweber\Exceptions\AweberException;
 
 class AweberClient
@@ -25,27 +27,29 @@ class AweberClient
      */
     public function __construct()
     {
-        $this->store = config('aweber.cache');
-        $this->oauth_url = config('aweber.oauth_url');
-        if (empty($this->client_id = config('aweber.client_id'))) {
+        $this->store = Config::get('aweber.cache');
+        $this->oauth_url = Config::get('aweber.oauth_url');
+        $this->client_id = Config::get('aweber.client_id');
+        $this->client_secret = Config::get('aweber.client_secret');
+        if (empty($this->client_id)) {
             throw new AweberException('Client ID is not set');
         }
-        if (empty($this->client_secret = config('aweber.client_secret'))) {
+        if (empty($this->client_secret)) {
             throw new AweberException('Client secret is not set');
         }
         // If no token object is stored in the cache, request a new token object
-        if (! cache()->store($this->store)->has('aweber.token')) {
+        if (! Cache::has('aweber.token')) {
             // Generate access token
             $this->getNewAccessToken();
         }
         // Retrieve the token object from the cache
-        $this->token = unserialize(cache()->store($this->store)->get('aweber.token'));
+        $this->token = unserialize(Cache::get('aweber.token'));
 
         // If the token is expired, request a new access token using the refresh token
         if (empty($this->token['expires_at']) || $this->token['expires_at']->lt(\Carbon\Carbon::now())) {
             $this->refreshAccessToken();
         }
-        $this->api_url = config('aweber.api_url');
+        $this->api_url = Config::get('aweber.api_url');
         // Find account
         $this->account_id = $this->findAccount();
 
@@ -64,16 +68,19 @@ class AweberClient
      */
     private function getNewAccessToken()
     {
-        if (empty($redirect_uri = config('aweber.redirect_uri'))) {
+        $redirect_uri = Config::get('aweber.redirect_uri');
+        if (empty($redirect_uri)) {
             throw new AweberException('Redirect URI is not set');
         }
-        if (empty($username = config('aweber.username'))) {
+        $username = Config::get('aweber.username');
+        if (empty($username)) {
             throw new AweberException('Aweber username is not set');
         }
-        if (empty($password = config('aweber.password'))) {
+        $password = Config::get('aweber.password');
+        if (empty($password)) {
             throw new AweberException('Aweber password is not set');
         }
-        $scopes = config('aweber.scopes');
+        $scopes = Config::get('aweber.scopes');
         // Set up form parameters to use when requesting a code
         $form_params = array(
             'username' => $username,
@@ -90,11 +97,11 @@ class AweberClient
             'client_id' => $this->client_id
         );
         // Build authorization URL
-        $authorization_url = sprintf(
+        $authorization_url = str_replace('+', '%20', sprintf(
             '%s/authorize?%s',
             $this->oauth_url,
-            http_build_query($params, '', '&', PHP_QUERY_RFC3986)
-        );
+            http_build_query($params)
+        ));
         // Create a new Guzzle client
         $client = new \GuzzleHttp\Client(array(
             'cookies' => true,
@@ -135,7 +142,7 @@ class AweberClient
                 $token = json_decode($response->getBody(), true);
                 $token['expires_at'] = \Carbon\Carbon::now()->addSeconds($token['expires_in']);
 
-                cache()->store($this->store)->forever('aweber.token', serialize($token));
+                Cache::forever('aweber.token', serialize($token));
             }
         }
     }
@@ -160,7 +167,7 @@ class AweberClient
         ));
         $this->token = json_decode($response->getBody(), true);
         $this->token['expires_at'] = \Carbon\Carbon::now()->addSeconds($this->token['expires_in']);
-        cache()->store($this->store)->forever('aweber.token', serialize($this->token));
+        Cache::forever('aweber.token', serialize($this->token));
     }
 
     /**

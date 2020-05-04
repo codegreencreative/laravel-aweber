@@ -100,7 +100,7 @@ return [
     | scopes.
     |
     */
-    'scopes' => [
+    'scopes' => array(
         'account.read',
         'list.read',
         'list.write',
@@ -109,7 +109,7 @@ return [
         'email.read',
         'email.write',
         'subscriber.read-extended'
-    ],
+    ),
 
     /*
     |--------------------------------------------------------------------------
