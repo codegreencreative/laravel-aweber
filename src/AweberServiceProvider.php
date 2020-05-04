@@ -102,7 +102,7 @@ class AweberServiceProvider extends ServiceProvider
     {
         if ($this->app->runningInConsole()) {
             $this->commands(array(
-                \CodeGreenCreative\Aweber\Console\AweberAuthorize::class,
+                '\CodeGreenCreative\Aweber\Console\AweberAuthorize',
             ));
         }
     }
