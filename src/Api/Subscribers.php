@@ -48,7 +48,7 @@ class Subscribers extends AweberClient implements AweberApiContract
      * @param  integer $list_id
      * @return self
      */
-    public function list($list_id)
+    public function setList($list_id)
     {
         $this->list_id = $list_id;
         return $this;

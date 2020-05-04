@@ -52,14 +52,14 @@ $account->account;
 // $start integer default 0
 // $limit integer default 100 cannot be greater than 100
 $broadcasts = Aweber::broadcasts()
-    ->list($list_id)
+    ->setList($list_id)
     ->status('draft')
     ->paginate($start, $limit);
 
 // Load a single broadcast
 // $account_id integer
 $broadcast = Aweber::broadcasts()
-    ->list($list_id)
+    ->setList($list_id)
     ->load($broadcast_id);
 // Will return the orignal broadcast object returned by Aweber
 $broadcast->broadcast;
@@ -72,13 +72,13 @@ $broadcast->broadcast;
 // $start integer default 0
 // $limit integer default 100 cannot be greater than 100
 $campaigns = Aweber::campaigns()
-    ->list($list_id)
+    ->setList($list_id)
     ->paginate($start, $limit);
 
 // Load a single campaign
 // $account_id integer
 $campaign = Aweber::campaigns()
-    ->list($list_id)
+    ->setList($list_id)
     ->load($campaign_id);
 // Will return the orignal campaign object returned by Aweber
 $campaign->campaign;
@@ -91,13 +91,13 @@ $campaign->campaign;
 // $start integer default 0
 // $limit integer default 100 cannot be greater than 100
 $custom_fields = Aweber::customFields()
-    ->list($list_id)
+    ->setList($list_id)
     ->paginate($start, $limit);
 
 // Load a single custom field
 // $account_id integer
 $custom_field = Aweber::customFields()
-    ->list($list_id)
+    ->setList($list_id)
     ->load($custom_field_id);
 // Will return the orignal custom field object returned by Aweber
 $custom_field->custom_field;
@@ -115,7 +115,7 @@ $lists = Aweber::lists()->paginate($start, $limit);
 // $list_id integer
 $list = Aweber::lists()->load($list_id);
 // Will return the orignal list object returned by Aweber
-$list->list;
+$list->setList;
 
 // This will return an array containing up to 500 tags 
 // sorted by descending popularity.
@@ -140,18 +140,18 @@ $subscribers = $list->total_unsubscribed_subscribers;
 // $start integer default 0
 // $limit integer default 100 cannot be greater than 100
 $lists = Aweber::subscribers()
-    ->list($list_id)
+    ->setList($list_id)
     ->paginate($start, $limit);
 
 // Load a single subscriber
 $subscriber = Aweber::subscribers()
-    ->list($list_id)
+    ->setList($list_id)
     ->find($subscriber_id);
 // Will return the orignal subscriber object returned by Aweber
-$list->list;
+$list->setList;
 
 // Add a subscriber to a list
-$subscriber = Aweber::subscribers()->list($list_id)->add([
+$subscriber = Aweber::subscribers()->setList($list_id)->add([
     'custom_fields' => [
         'field' => 'value',
     ],
@@ -164,7 +164,7 @@ $subscriber = Aweber::subscribers()->list($list_id)->add([
 
 // Move a subscriber from one list to another
 $subscriber = Aweber::subscribers()
-    ->list($list_id)
+    ->setList($list_id)
     ->load($subscriber_id);
 $subscriber->move($destination_list_id);
 ```
