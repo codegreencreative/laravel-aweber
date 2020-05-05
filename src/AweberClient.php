@@ -15,6 +15,7 @@ class AweberClient
     public $client;
     protected $store;
     protected $api_url;
+    protected $base_uri;
     protected $oauth_url;
     protected $client_id;
     protected $client_secret;
@@ -37,29 +38,25 @@ class AweberClient
         if (empty($this->client_secret)) {
             throw new AweberException('Client secret is not set');
         }
+        Cache::forget('aweber.token');
         // If no token object is stored in the cache, request a new token object
         if (! Cache::has('aweber.token')) {
             // Generate access token
             $this->getNewAccessToken();
+        } else {
+            // Retrieve the token object from the cache
+            $this->token = unserialize(Cache::get('aweber.token'));
         }
-        // Retrieve the token object from the cache
-        $this->token = unserialize(Cache::get('laravel-aweber::token'));
-
         // If the token is expired, request a new access token using the refresh token
-        if (empty($this->token['expires_at']) || $this->token['expires_at']->lt(\Carbon\Carbon::now())) {
+        if (empty($this->token->expires_at) || $this->token->expires_at->lt(\Carbon\Carbon::now())) {
             $this->refreshAccessToken();
         }
+        // Define Aweber API URL
         $this->api_url = Config::get('laravel-aweber::api_url');
         // Find account
         $this->account_id = $this->findAccount();
-
-        // Create new client
-        $this->client = new \GuzzleHttp\Client(array(
-            'base_uri' => $this->api_url . 'accounts/' . $this->account_id . '/',
-            'headers' => array(
-                'Authorization' => 'Bearer ' . $this->token['access_token']
-            )
-        ));
+        // Transform base URI
+        $this->base_uri = $this->api_url . 'accounts/' . $this->account_id . '/';
     }
 
     /**
@@ -102,48 +99,99 @@ class AweberClient
             $this->oauth_url,
             http_build_query($params)
         ));
-        // Create a new Guzzle client
-        $client = new \GuzzleHttp\Client(array(
-            'cookies' => true,
-            'allow_redirects' => false
-        ));
-        // Get authorization URL
-        $response = $client->request('GET', $authorization_url);
-        if ($response->getStatusCode() == 200) {
-            libxml_use_internal_errors(true);
-            $doc = new \DOMDocument('1.0', 'utf-8');
-            libxml_clear_errors();
-            $doc->loadHTML($response->getBody());
-            $xp = new \DOMXpath($doc);
-            $nodes = $xp->query('//input[@type="hidden"]');
-            foreach ($nodes as $node) {
-                $form_params[$node->getAttribute('name')] = $node->getAttribute('value');
-            }
-            // Attempt to authorize
-            $response = $client->request('POST', $this->oauth_url . '/authorize', array(
-                'form_params' => $form_params
+
+        $handle = curl_init($authorization_url);
+        curl_setopt($handle, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($handle, CURLOPT_HEADER, true);
+        curl_setopt($handle, CURLOPT_COOKIEJAR, '/tmp/cookies.txt');
+        curl_setopt($handle, CURLOPT_COOKIEFILE, '/tmp/cookies.txt');
+        curl_setopt($handle, CURLOPT_COOKIE, '');
+        curl_setopt($handle, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($handle, CURLOPT_VERBOSE, false);
+        curl_setopt($handle, CURLOPT_CONNECTTIMEOUT, 10);
+        curl_setopt($handle, CURLOPT_TIMEOUT, 90);
+        $response = curl_exec($handle);
+        $info = curl_getinfo($handle);
+
+        if ($info['http_code'] != 200) {
+            throw new AweberException('There was a problem authorizing with Aweber');
+        }
+
+        // Load the HTML for parsing
+        libxml_use_internal_errors(true);
+        $doc = new \DOMDocument('1.0', 'utf-8');
+        libxml_clear_errors();
+        $doc->loadHTML(substr($response, strpos($response, '<!DOCTYPE html>'), strlen($response)));
+        $xp = new \DOMXpath($doc);
+        $nodes = $xp->query('//input[@type="hidden"]');
+        foreach ($nodes as $node) {
+            $form_params[$node->getAttribute('name')] = $node->getAttribute('value');
+        }
+
+        // Attempt to authorize
+        $handle = curl_init($this->oauth_url . '/authorize');
+        curl_setopt($handle, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($handle, CURLOPT_HEADER, true);
+        curl_setopt($handle, CURLOPT_POST, true);
+        curl_setopt($handle, CURLOPT_POSTFIELDS, str_replace('+', '%20', http_build_query($form_params)));
+        curl_setopt($handle, CURLOPT_COOKIEJAR, '/tmp/cookies.txt');
+        curl_setopt($handle, CURLOPT_COOKIEFILE, '/tmp/cookies.txt');
+        curl_setopt($handle, CURLOPT_COOKIE, '');
+        curl_setopt($handle, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($handle, CURLOPT_VERBOSE, false);
+        curl_setopt($handle, CURLOPT_CONNECTTIMEOUT, 10);
+        curl_setopt($handle, CURLOPT_TIMEOUT, 90);
+        $response = curl_exec($handle);
+        $info = curl_getinfo($handle);
+
+        if ($info['http_code'] != 302) {
+            throw new AweberException('There was a problem authorizing with Aweber');
+        }
+
+        // Find the location containing the authorization code
+        $headers = explode("\n", $response);
+        $location = array_values(array_filter($headers, function ($header) {
+            return stristr($header, 'Location:');
+        }));
+
+        if (! empty($location)) {
+            $location = trim(substr($location[0], strpos($location[0], 'http'), strlen($location[0])));
+            $location = parse_url($location, PHP_URL_QUERY);
+            parse_str($location, $output);
+
+            $handle = curl_init($this->oauth_url . '/token');
+            curl_setopt($handle, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($handle, CURLOPT_HEADER, false);
+            curl_setopt($handle, CURLOPT_HTTPHEADER, array(
+                'Content-Type: application/json'
             ));
-            if ($response->hasHeader('Location')) {
-                $header = $response->getHeader('Location');
-                $location = parse_url($header[0], PHP_URL_QUERY);
-                parse_str($location, $output);
+            curl_setopt($handle, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
+            curl_setopt($handle, CURLOPT_USERPWD, sprintf('%s:%s', $this->client_id, $this->client_secret));
+            curl_setopt($handle, CURLOPT_COOKIEJAR, '/tmp/cookies.txt');
+            curl_setopt($handle, CURLOPT_COOKIEFILE, '/tmp/cookies.txt');
+            curl_setopt($handle, CURLOPT_COOKIE, '');
+            curl_setopt($handle, CURLOPT_POST, true);
+            curl_setopt($handle, CURLOPT_POSTFIELDS, json_encode(array(
+                'grant_type' => 'authorization_code',
+                'redirect_uri' => $redirect_uri,
+                'code' => $output['code']
+            )));
+            curl_setopt($handle, CURLOPT_SSL_VERIFYPEER, false);
+            curl_setopt($handle, CURLOPT_VERBOSE, true);
+            curl_setopt($handle, CURLOPT_CONNECTTIMEOUT, 10);
+            curl_setopt($handle, CURLOPT_TIMEOUT, 90);
+            $response = curl_exec($handle);
+            $info = curl_getinfo($handle);
 
-                $response = $client->post($this->oauth_url . '/token', array(
-                    'auth' => array(
-                        $this->client_id,
-                        $this->client_secret
-                    ),
-                    'json' => array(
-                        'grant_type' => 'authorization_code',
-                        'redirect_uri' => $redirect_uri,
-                        'code' => $output['code']
-                    )
-                ));
-                $token = json_decode($response->getBody(), true);
-                $token['expires_at'] = \Carbon\Carbon::now()->addSeconds($token['expires_in']);
-
-                Cache::forever('aweber.token', serialize($token));
+            if ($info['http_code'] != 200) {
+                throw new AweberException('There was a problem authorizing with Aweber');
             }
+
+            // Get the code and store it
+            $this->token = json_decode($response);
+            $this->token->expires_at = \Carbon\Carbon::now()->addSeconds($this->token->expires_in);
+
+            Cache::forever('aweber.token', serialize($this->token));
         }
     }
 
@@ -153,63 +201,124 @@ class AweberClient
      */
     private function refreshAccessToken()
     {
-        $client = new \GuzzleHttp\Client;
-
-        $response = $client->post($this->oauth_url . '/token', array(
-            'auth' => array(
-                $this->client_id,
-                $this->client_secret
-            ),
-            'json' => array(
-                'grant_type' => 'refresh_token',
-                'refresh_token' => $this->token['refresh_token']
-            )
+        $handle = curl_init($this->oauth_url . '/token');
+        curl_setopt($handle, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($handle, CURLOPT_HEADER, false);
+        curl_setopt($handle, CURLOPT_HTTPHEADER, array(
+            'Content-Type: application/x-www-form-urlencoded'
         ));
-        $this->token = json_decode($response->getBody(), true);
-        $this->token['expires_at'] = \Carbon\Carbon::now()->addSeconds($this->token['expires_in']);
+        curl_setopt($handle, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
+        curl_setopt($handle, CURLOPT_USERPWD, sprintf('%s:%s', $this->client_id, $this->client_secret));
+        curl_setopt($handle, CURLOPT_POST, true);
+        curl_setopt($handle, CURLOPT_POSTFIELDS, http_build_query(array(
+            'grant_type' => 'refresh_token',
+            'refresh_token' => $this->token->refresh_token
+        )));
+        curl_setopt($handle, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($handle, CURLOPT_VERBOSE, true);
+        curl_setopt($handle, CURLOPT_CONNECTTIMEOUT, 10);
+        curl_setopt($handle, CURLOPT_TIMEOUT, 90);
+        $response = curl_exec($handle);
+        $info = curl_getinfo($handle);
+
+        if ($info['http_code'] != 200) {
+            throw new AweberException('There was a problem refreshing access token with refresh token.');
+        }
+
+        $this->token = json_decode($response);
+        $this->token->expires_at = \Carbon\Carbon::now()->addSeconds($this->token->expires_in);
+
         Cache::forever('aweber.token', serialize($this->token));
     }
 
     /**
      * Handle an Aweber API request
      *
+     * Returns an integer for the object on creation
+     * Return an array on retrieval
+     *
      * @param  string $method
      * @param  string $path
      * @param  array  $data
-     * @return \Illuminate\Support\Collection
+     * @return integer | array
      */
     public function request($method, $path, $data = array())
     {
-        $key = $method == 'GET' ? 'query' : 'json';
-        $response = $this->client->request($method, $path, array(
-            $key => $data,
-            'headers' => array(
-                'Content-Type' => 'application/json',
-                'Accept' => 'application/json'
-            )
+        $uri = $this->base_uri . $path;
+        $uri .= $method == 'GET' ? '?' . str_replace('+', '%20', http_build_query($data)) : '';
+
+        $handle = curl_init($uri);
+        curl_setopt($handle, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($handle, CURLOPT_HEADER, true);
+        if ($method == 'POST') {
+            curl_setopt($handle, CURLOPT_POST, true);
+            curl_setopt($handle, CURLOPT_POSTFIELDS, json_encode($data));
+        }
+        curl_setopt($handle, CURLOPT_HTTPHEADER, array(
+            'Content-Type: application/json',
+            'Authorization: Bearer ' . $this->token->access_token
         ));
-        if ($response->getStatusCode() == 200) {
-            return json_decode($response->getBody());
-            // $data = new \Illuminate\Support\Collection(json_decode($response->getBody()));
-        } elseif ($response->getStatusCode() == 201) {
+        curl_setopt($handle, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($handle, CURLOPT_VERBOSE, false);
+        curl_setopt($handle, CURLOPT_CONNECTTIMEOUT, 10);
+        curl_setopt($handle, CURLOPT_TIMEOUT, 90);
+        $response = curl_exec($handle);
+        $info = curl_getinfo($handle);
+
+        $header_size = curl_getinfo($handle, CURLINFO_HEADER_SIZE);
+        $header = substr($response, 0, $header_size);
+        $body = substr($response, $header_size);
+
+        $body = json_decode($body);
+
+        if (isset($body->error)) {
+            if (isset($body->error->message)) {
+                throw new AweberException($body->error->message);
+            }
+            throw new AweberException($body->error_description);
+        }
+
+        if ($info['http_code'] == 200) {
+            return $body;
+        } elseif ($info['http_code'] == 201) {
             // Created
-            $header = $response->getHeader('Location');
-            $path_parts = explode('/', parse_url($header[0], PHP_URL_PATH));
+            $headers = explode("\n", $header);
+            $location = array_values(array_filter($headers, function ($header) {
+                return stristr($header, 'Location:');
+            }));
+            $location = trim(substr($location[0], strpos($location[0], 'http'), strlen($location[0])));
+            $path_parts = explode('/', parse_url($location, PHP_URL_PATH));
             // Return the ID of the resource
             return array_pop($path_parts);
         }
     }
 
+    /**
+     * Find an account associated with Awener API credentials
+     *
+     * @return integer Account ID
+     */
     private function findAccount()
     {
-        $client = new \GuzzleHttp\Client(array(
-            'base_uri' => $this->api_url,
-            'headers' => array(
-                'Authorization' => 'Bearer ' . $this->token['access_token']
-            )
+        $handle = curl_init($this->api_url . 'accounts');
+        curl_setopt($handle, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($handle, CURLOPT_HEADER, false);
+        curl_setopt($handle, CURLOPT_HTTPHEADER, array(
+            'Content-Type: application/json',
+            'Authorization: Bearer ' . $this->token->access_token
         ));
-        $response = $client->request('get', 'accounts');
-        $data = json_decode($response->getBody(), true);
-        return $data['entries'][0]['id'];
+        curl_setopt($handle, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($handle, CURLOPT_VERBOSE, false);
+        curl_setopt($handle, CURLOPT_CONNECTTIMEOUT, 10);
+        curl_setopt($handle, CURLOPT_TIMEOUT, 90);
+        $response = curl_exec($handle);
+        $info = curl_getinfo($handle);
+
+        if ($info['http_code'] != 200) {
+            throw new AweberException('There was a problem authorizing with Aweber');
+        }
+
+        $data = json_decode($response);
+        return $data->entries[0]->id;
     }
 }
