@@ -250,9 +250,13 @@ class AweberClient
         $handle = curl_init($uri);
         curl_setopt($handle, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($handle, CURLOPT_HEADER, true);
-        if ($method == 'POST') {
-            curl_setopt($handle, CURLOPT_POST, true);
+        if (in_array($method, array('POST', 'PATCH'))) {
             curl_setopt($handle, CURLOPT_POSTFIELDS, json_encode($data));
+            if ($method == 'PATCH') {
+                curl_setopt($handle, CURLOPT_CUSTOMREQUEST, 'PATCH');
+            } else {
+                curl_setopt($handle, CURLOPT_POST, true);
+            }
         }
         curl_setopt($handle, CURLOPT_HTTPHEADER, array(
             'Content-Type: application/json',

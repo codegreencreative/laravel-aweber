@@ -80,6 +80,22 @@ class Subscribers extends AweberClient implements AweberApiContract
     }
 
     /**
+     * Update a subscriber on a list
+     *
+     * Aweber API Reference
+     * https://api.aweber.com/#tag/Subscribers/paths/~1accounts~1{accountId}~1lists~1{listId}~1subscribers/post
+     *
+     * @param integer $list_id
+     * @param array $options
+     */
+    public function update($options)
+    {
+        $this->request('PATCH', 'lists/' . $this->list_id . '/subscribers/' . $this->subscriber->id, $options);
+        // Reload the subscriber
+        return $this->load($this->subscriber->id);
+    }
+
+    /**
      * Move a subscriber from one list to another
      *
      * @param  integer $destination_list_id
