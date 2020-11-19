@@ -14,46 +14,6 @@
 return [
     /*
     |--------------------------------------------------------------------------
-    | Aweber username
-    |--------------------------------------------------------------------------
-    |
-    | The username you wish to have your application get access to
-    |
-    */
-    'username' => env('AWEBER_USERNAME', null),
-
-    /*
-    |--------------------------------------------------------------------------
-    | Aweber password
-    |--------------------------------------------------------------------------
-    |
-    | The password you wish to have your application get access to
-    |
-    */
-    'password' => env('AWEBER_PASSWORD', null),
-
-    /*
-    |--------------------------------------------------------------------------
-    | Base API URL
-    |--------------------------------------------------------------------------
-    |
-    | The base API URL for Aweber API endpoints
-    |
-    */
-    'api_url' => env('AWEBER_API_URL', 'https://api.aweber.com/1.0/'),
-
-    /*
-    |--------------------------------------------------------------------------
-    | Base OAuth URL
-    |--------------------------------------------------------------------------
-    |
-    | The base OAuth URL for Aweber authorization
-    |
-    */
-    'oauth_url' => env('AWEBER_OAUTH_URL', 'https://auth.aweber.com/oauth2'),
-
-    /*
-    |--------------------------------------------------------------------------
     | Client ID
     |--------------------------------------------------------------------------
     |
@@ -76,19 +36,23 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Redirect URI
+    | Aweber account token key
     |--------------------------------------------------------------------------
     |
-    | This is where the user-agent (in most cases the customer’s browser) will
-    | be sent after the customer clicks authorize. This should be a uri that
-    | your application can read because that’s where we’ll provide our response.
-    | When you provide your callback, make sure it’s the same one you specified
-    | when creating your integration.
-    |
-    | This must match the redirect URL of your Aweber app
+    | Account token key
     |
     */
-    'redirect_uri' => env('AWEBER_REDIRECT_URI', null),
+    'token_key' => env('AWEBER_TOKEN_KEY', null),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Aweber account token secret
+    |--------------------------------------------------------------------------
+    |
+    | Account token secret
+    |
+    */
+    'token_secret' => env('AWEBER_TOKEN_SECRET', null),
 
     /*
     |--------------------------------------------------------------------------

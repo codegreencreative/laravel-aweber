@@ -2,10 +2,6 @@
 
 namespace CodeGreenCreative\Aweber;
 
-use CodeGreenCreative\Aweber\Api\Lists;
-use CodeGreenCreative\Aweber\Api\Subscribers;
-use League\Oauth2\Client\Provider\GenericProvider;
-
 class Aweber
 {
     public $classes = array(

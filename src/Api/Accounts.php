@@ -3,10 +3,9 @@
 namespace CodeGreenCreative\Aweber\Api;
 
 use CodeGreenCreative\Aweber\AweberClient;
-use CodeGreenCreative\Aweber\Contracts\AweberApiContract;
 use CodeGreenCreative\Aweber\Exceptions\AweberException;
 
-class Accounts extends AweberClient implements AweberApiContract
+class Accounts extends AweberClient
 {
     private $account;
 
