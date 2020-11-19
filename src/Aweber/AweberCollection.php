@@ -1,10 +1,13 @@
 <?php
 
-namespace Codegreencreative\Aweber\Aweber;
+namespace CodeGreenCreative\Aweber\Aweber;
 
 use CodeGreenCreative\Aweber\Aweber\AweberEntry;
 use CodeGreenCreative\Aweber\Aweber\AweberResponse;
 use Exception;
+use ArrayAccess;
+use Iterator;
+use Countable;
 
 class AweberCollection extends AweberResponse implements ArrayAccess, Iterator, Countable
 {

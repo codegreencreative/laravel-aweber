@@ -3,10 +3,9 @@
 namespace CodeGreenCreative\Aweber\Api;
 
 use CodeGreenCreative\Aweber\AweberClient;
-use CodeGreenCreative\Aweber\Contracts\AweberApiContract;
-use CodeGreenCreative\Aweber\Exceptions\AweberException;
+use CodeGreenCreative\Aweber\Aweber\Exceptions\AweberException;
 
-class Subscribers extends AweberClient implements AweberApiContract
+class Subscribers extends AweberClient
 {
     private $list_id;
     private $subscriber;
@@ -38,7 +37,7 @@ class Subscribers extends AweberClient implements AweberApiContract
      */
     public function load($subscriber_id)
     {
-        $this->subscriber = $this->request('GET', 'lists/' . $this->list_id . '/subscribers/' . $subscriber_id);
+        $this->subscriber = (object)$this->request('GET', 'lists/' . $this->list_id . '/subscribers/' . $subscriber_id);
         return $this;
     }
 
@@ -105,8 +104,27 @@ class Subscribers extends AweberClient implements AweberApiContract
     {
         $this->request('POST', 'lists/' . $this->list_id . '/subscribers/' . $this->subscriber->id, array(
             'ws.op' => 'move',
-            'list_link' => $this->api_url . 'accounts/' . $this->account_id . '/lists/' . $destination_list_id
+            'list_link' => $this->api_url . '/accounts/' . $this->account_id . '/lists/' . $destination_list_id
         ));
+    }
+
+    /**
+     * Find a subscriber on a list
+     *
+     * @param  string $email
+     * @return array
+     */
+    public function find($email)
+    {
+        $subscriber = $this->request('GET', 'lists/' . $this->list_id . '/subscribers', array(
+            'ws.op' => 'find',
+            'email' => $email
+        ));
+        // dd($subscriber['entries']);
+        if (! empty($subscriber['entries'])) {
+            $this->subscriber = (object)$subscriber['entries'][0];
+        }
+        return $this->subscriber;
     }
 
     /**

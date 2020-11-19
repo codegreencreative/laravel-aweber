@@ -1,6 +1,6 @@
 <?php
 
-namespace Codegreencreative\Aweber\Aweber;
+namespace CodeGreenCreative\Aweber\Aweber;
 
 /**
  * OAuthUser

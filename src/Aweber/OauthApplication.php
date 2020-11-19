@@ -1,14 +1,10 @@
 <?php
 
-namespace Codegreencreative\Aweber\Aweber;
+namespace CodeGreenCreative\Aweber\Aweber;
 
 use CodeGreenCreative\Aweber\Aweber\AweberOauthAdapter;
-use CodeGreenCreative\Aweber\Aweber\CurlResponse;
 use CodeGreenCreative\Aweber\Aweber\Exceptions\AweberApiException;
-use CodeGreenCreative\Aweber\Aweber\Exceptions\AweberOauthDataMissing;
-use CodeGreenCreative\Aweber\Aweber\Exceptions\AweberOauthException;
-use CodeGreenCreative\Aweber\Aweber\Exceptions\AweberResponseError;
-use Codegreencreative\Aweber\Aweber\OauthUser;
+use CodeGreenCreative\Aweber\Aweber\OauthUser;
 use Exception;
 
 /**
@@ -69,7 +65,7 @@ class OauthApplication implements AweberOauthAdapter
             }
             $this->app = $parentApp;
         }
-        $this->user = new OauthUser;
+        $this->user = new \CodeGreenCreative\Aweber\Aweber\OauthUser;
     }
 
     /**
@@ -368,7 +364,8 @@ class OauthApplication implements AweberOauthAdapter
         $method = $this->encode(strtoupper($method));
         $query = parse_url($url, PHP_URL_QUERY);
         if ($query) {
-            $url = array_shift(explode('?', $url, 2));
+            $url = explode('?', $url, 2);
+            $url = array_shift($url);
             $items = explode('&', $query);
             foreach ($items as $item) {
                 list($key, $value) = explode('=', $item);
