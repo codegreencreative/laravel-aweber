@@ -36,7 +36,7 @@ class AweberApi extends AweberApiBase
      */
     public static function getDataFromAweberID($string)
     {
-        list($consumerKey, $consumerSecret, $requestToken, $tokenSecret, $verifier) = AWeberAPI::_parseAweberID($string);
+        list($consumerKey, $consumerSecret, $requestToken, $tokenSecret, $verifier) = AweberApi::_parseAweberID($string);
 
         if (!$verifier) {
             return null;
@@ -99,7 +99,7 @@ class AweberApi extends AweberApiBase
     {
         if (empty($adapter)) {
             $serviceProvider = new AweberServiceProvider();
-            $adapter = new OAuthApplication($serviceProvider);
+            $adapter = new OauthApplication($serviceProvider);
             $adapter->consumerKey = $this->consumerKey;
             $adapter->consumerSecret = $this->consumerSecret;
         }
@@ -119,7 +119,7 @@ class AweberApi extends AweberApiBase
     public function getAccount($token = false, $secret = false)
     {
         if ($token && $secret) {
-            $user = new OAuthUser();
+            $user = new OauthUser();
             $user->accessToken = $token;
             $user->tokenSecret = $secret;
             $this->adapter->user = $user;
