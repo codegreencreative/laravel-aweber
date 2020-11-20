@@ -2,9 +2,7 @@
 
 namespace CodeGreenCreative\Aweber\Aweber;
 
-use CodeGreenCreative\Aweber\Aweber\AweberOauthAdapter;
 use CodeGreenCreative\Aweber\Aweber\Exceptions\AweberApiException;
-use CodeGreenCreative\Aweber\Aweber\OauthUser;
 use Exception;
 
 /**
@@ -65,7 +63,7 @@ class OauthApplication implements AweberOauthAdapter
             }
             $this->app = $parentApp;
         }
-        $this->user = new \CodeGreenCreative\Aweber\Aweber\OauthUser;
+        $this->user = new OauthUser;
     }
 
     /**

@@ -2,8 +2,6 @@
 
 namespace CodeGreenCreative\Aweber\Aweber;
 
-use CodeGreenCreative\Aweber\Aweber\AweberEntry;
-use CodeGreenCreative\Aweber\Aweber\AweberResponse;
 use Exception;
 use ArrayAccess;
 use Iterator;

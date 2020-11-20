@@ -2,12 +2,8 @@
 
 namespace CodeGreenCreative\Aweber\Aweber;
 
-use CodeGreenCreative\Aweber\Aweber\AweberEntry;
-use CodeGreenCreative\Aweber\Aweber\AweberEntryDataArray;
-use CodeGreenCreative\Aweber\Aweber\AweberResponse;
 use CodeGreenCreative\Aweber\Aweber\Exceptions\AweberMethodNotImplemented;
 use CodeGreenCreative\Aweber\Aweber\Exceptions\AweberResourceNotImplemented;
-use Codegreencreative\Aweber\Aweber\AweberCollection;
 use Exception;
 
 class AweberEntry extends AweberResponse
@@ -48,8 +44,8 @@ class AweberEntry extends AweberResponse
                 $attrs[$key] = $value;
             }
         }
-        if (!empty(AWeberAPI::$_collectionMap[$this->type])) {
-            foreach (AWeberAPI::$_collectionMap[$this->type] as $child) {
+        if (!empty(AweberApi::$_collectionMap[$this->type])) {
+            foreach (AweberApi::$_collectionMap[$this->type] as $child) {
                 $attrs[$child] = 'collection';
             }
         }
@@ -363,8 +359,8 @@ class AweberEntry extends AweberResponse
     protected function _isChildCollection($value)
     {
         $this->_type();
-        if (! empty(AWeberAPI::$_collectionMap[$this->type]) &&
-            in_array($value, AWeberAPI::$_collectionMap[$this->type])
+        if (! empty(AweberApi::$_collectionMap[$this->type]) &&
+            in_array($value, AweberApi::$_collectionMap[$this->type])
         ) {
             return true;
         }
