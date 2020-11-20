@@ -3,6 +3,9 @@
 namespace CodeGreenCreative\Aweber\Aweber;
 
 use CodeGreenCreative\Aweber\Aweber\Exceptions\AweberApiException;
+use CodeGreenCreative\Aweber\Aweber\Exceptions\AweberOauthDataMissing;
+use CodeGreenCreative\Aweber\Aweber\Exceptions\AweberOauthException;
+use CodeGreenCreative\Aweber\Aweber\Exceptions\AweberResponseError;
 use Exception;
 
 /**
