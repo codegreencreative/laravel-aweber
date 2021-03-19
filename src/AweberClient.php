@@ -61,11 +61,11 @@ class AweberClient
      * @param  array  $data
      * @return integer | array
      */
-    public function request($method, $path, $data = array())
+    public function request($method, $path, $data = array(), $options = array())
     {
         $uri = $this->base_uri . $path;
 
-        return $this->aweber_api->adapter->request($method, $uri, $data);
+        return $this->aweber_api->adapter->request($method, $uri, $data, $options);
 
         // $uri .= $method == 'GET' ? '?' . str_replace('+', '%20', http_build_query($data)) : '';
         // $handle = curl_init($uri);
