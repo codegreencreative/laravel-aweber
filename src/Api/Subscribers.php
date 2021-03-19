@@ -72,9 +72,9 @@ class Subscribers extends AweberClient
      * @param integer $list_id
      * @param array $options
      */
-    public function add($options)
+    public function add($data, $options = array())
     {
-        $subscriber_id = $this->request('POST', 'lists/' . $this->list_id . '/subscribers', $options);
+        $subscriber_id = $this->request('POST', 'lists/' . $this->list_id . '/subscribers', $data, $options);
         return $this->load($subscriber_id);
     }
 
