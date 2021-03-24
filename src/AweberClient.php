@@ -65,6 +65,10 @@ class AweberClient
     {
         $uri = $this->base_uri . $path;
 
+        if (config('aweber.allow_empty')) {
+            $options = array_merge($options, ['allow_empty' => true]);
+        }
+
         return $this->aweber_api->adapter->request($method, $uri, $data, $options);
 
         // $uri .= $method == 'GET' ? '?' . str_replace('+', '%20', http_build_query($data)) : '';

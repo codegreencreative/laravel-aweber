@@ -84,5 +84,17 @@ return [
     | from Aweber
     |
     */
-    'cache' => env('AWEBER_CACHE', env('CACHE_DRIVER'))
+    'cache' => env('AWEBER_CACHE', env('CACHE_DRIVER')),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Allow Empty
+    |--------------------------------------------------------------------------
+    |
+    | Allow empty responses from Aweber.
+    | If false, an exception may be thrown when Aweber responds
+    | If true, no exception will be thrown when an Aweber response is empty
+    |
+     */
+    'allow_empty' => env('AWEBER_ALLOW_EMPTY', true)
 ];
