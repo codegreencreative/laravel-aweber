@@ -3,10 +3,9 @@
 namespace CodeGreenCreative\Aweber\Api;
 
 use CodeGreenCreative\Aweber\AweberClient;
-use CodeGreenCreative\Aweber\Contracts\AweberApiContract;
-use CodeGreenCreative\Aweber\Exceptions\AweberException;
+use CodeGreenCreative\Aweber\Aweber\Exceptions\AweberException;
 
-class Broadcasts extends AweberClient implements AweberApiContract
+class Broadcasts extends AweberClient
 {
     private $list_id;
     private $broadcast;
@@ -26,11 +25,11 @@ class Broadcasts extends AweberClient implements AweberApiContract
             throw new AweberException('Limit on record sets is 100.');
         }
 
-        return $this->request('GET', 'lists/' . $this->list_id . '/broadcasts', array(
+        return $this->request('GET', 'lists/' . $this->list_id . '/broadcasts', [
             'status' => $this->status,
             'ws.start' => $start,
-            'ws.size' => $limit
-        ));
+            'ws.size' => $limit,
+        ]);
     }
 
     /**

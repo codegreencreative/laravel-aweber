@@ -2,6 +2,7 @@
 
 namespace CodeGreenCreative\Aweber\Api;
 
+use Illuminate\Support\Str;
 use CodeGreenCreative\Aweber\AweberClient;
 use CodeGreenCreative\Aweber\Aweber\Exceptions\AweberException;
 
@@ -23,10 +24,10 @@ class Subscribers extends AweberClient
             throw new AweberException('Limit on record sets is 100.');
         }
 
-        return $this->request('GET', 'lists/' . $this->list_id . '/subscribers', array(
+        return $this->request('GET', 'lists/' . $this->list_id . '/subscribers', [
             'ws.start' => $start,
-            'ws.size' => $limit
-        ));
+            'ws.size' => $limit,
+        ]);
     }
 
     /**
@@ -37,7 +38,10 @@ class Subscribers extends AweberClient
      */
     public function load($subscriber_id)
     {
-        $this->subscriber = (object)$this->request('GET', 'lists/' . $this->list_id . '/subscribers/' . $subscriber_id);
+        $this->subscriber = (object) $this->request(
+            'GET',
+            'lists/' . $this->list_id . '/subscribers/' . $subscriber_id
+        );
         return $this;
     }
 
@@ -72,7 +76,7 @@ class Subscribers extends AweberClient
      * @param integer $list_id
      * @param array $options
      */
-    public function add($data, $options = array())
+    public function add($data, $options = [])
     {
         $subscriber_id = $this->request('POST', 'lists/' . $this->list_id . '/subscribers', $data, $options);
         return $this->load($subscriber_id);
@@ -102,10 +106,10 @@ class Subscribers extends AweberClient
      */
     public function move($destination_list_id)
     {
-        $this->request('POST', 'lists/' . $this->list_id . '/subscribers/' . $this->subscriber->id, array(
+        $this->request('POST', 'lists/' . $this->list_id . '/subscribers/' . $this->subscriber->id, [
             'ws.op' => 'move',
-            'list_link' => $this->api_url . '/accounts/' . $this->account_id . '/lists/' . $destination_list_id
-        ));
+            'list_link' => $this->api_url . '/accounts/' . $this->account_id . '/lists/' . $destination_list_id,
+        ]);
     }
 
     /**
@@ -116,13 +120,13 @@ class Subscribers extends AweberClient
      */
     public function find($email)
     {
-        $subscriber = $this->request('GET', 'lists/' . $this->list_id . '/subscribers', array(
+        $subscriber = $this->request('GET', 'lists/' . $this->list_id . '/subscribers', [
             'ws.op' => 'find',
-            'email' => $email
-        ));
+            'email' => $email,
+        ]);
         // dd($subscriber['entries']);
-        if (! empty($subscriber['entries'])) {
-            $this->subscriber = (object)$subscriber['entries'][0];
+        if (!empty($subscriber['entries'])) {
+            $this->subscriber = (object) $subscriber['entries'][0];
         }
         return $this->subscriber;
     }
@@ -135,8 +139,7 @@ class Subscribers extends AweberClient
      */
     public function __get($name)
     {
-        $name = function_exists('studly_case') ? studly_case($name) : \Illuminate\Support\Str::studly($name);
-        $name = sprintf('get%sAttribute', $name);
+        $name = sprintf('get%sAttribute', Str::studly($name));
         if (method_exists($this, $name)) {
             return $this->{$name}();
         }

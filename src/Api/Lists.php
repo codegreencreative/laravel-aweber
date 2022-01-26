@@ -2,11 +2,11 @@
 
 namespace CodeGreenCreative\Aweber\Api;
 
-use Aweber;
+use Illuminate\Support\Str;
 use CodeGreenCreative\Aweber\AweberClient;
-use CodeGreenCreative\Aweber\Contracts\AweberApiContract;
+use CodeGreenCreative\Aweber\Aweber\Exceptions\AweberException;
 
-class Lists extends AweberClient implements AweberApiContract
+class Lists extends AweberClient
 {
     private $list;
 
@@ -23,7 +23,7 @@ class Lists extends AweberClient implements AweberApiContract
             throw new AweberException('Limit on record sets is 100.');
         }
 
-        return $this->request('GET', 'lists', array('ws.start' => $start, 'ws.size' => $limit));
+        return $this->request('GET', 'lists', ['ws.start' => $start, 'ws.size' => $limit]);
     }
 
     /**
@@ -158,8 +158,7 @@ class Lists extends AweberClient implements AweberApiContract
      */
     public function __get($name)
     {
-        $name = function_exists('studly_case') ? studly_case($name) : \Illuminate\Support\Str::studly($name);
-        $name = sprintf('get%sAttribute', $name);
+        $name = sprintf('get%sAttribute', Str::studly($name));
         if (method_exists($this, $name)) {
             return $this->{$name}();
         }

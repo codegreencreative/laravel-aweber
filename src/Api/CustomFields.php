@@ -2,11 +2,11 @@
 
 namespace CodeGreenCreative\Aweber\Api;
 
+use Illuminate\Support\Str;
 use CodeGreenCreative\Aweber\AweberClient;
-use CodeGreenCreative\Aweber\Contracts\AweberApiContract;
-use CodeGreenCreative\Aweber\Exceptions\AweberException;
+use CodeGreenCreative\Aweber\Aweber\Exceptions\AweberException;
 
-class CustomFields extends AweberClient implements AweberApiContract
+class CustomFields extends AweberClient
 {
     private $list_id;
     private $custom_field;
@@ -24,10 +24,10 @@ class CustomFields extends AweberClient implements AweberApiContract
             throw new AweberException('Limit on record sets is 100.');
         }
 
-        return $this->request('GET', 'lists/' . $this->list_id . '/custom_fields', array(
+        return $this->request('GET', 'lists/' . $this->list_id . '/custom_fields', [
             'ws.start' => $start,
-            'ws.size' => $limit
-        ));
+            'ws.size' => $limit,
+        ]);
     }
 
     /**
@@ -71,8 +71,7 @@ class CustomFields extends AweberClient implements AweberApiContract
      */
     public function __get($name)
     {
-        $name = function_exists('studly_case') ? studly_case($name) : \Illuminate\Support\Str::studly($name);
-        $name = sprintf('get%sAttribute', $name);
+        $name = sprintf('get%sAttribute', Str::studly($name));
         if (method_exists($this, $name)) {
             return $this->{$name}();
         }

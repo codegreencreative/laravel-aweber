@@ -9,7 +9,7 @@ namespace CodeGreenCreative\Aweber\Aweber\Exceptions;
  * response. This differs from the exception that might be thrown as
  * an AWeberOAuthException when parameters are not provided because
  * it is not the servers' expectations that were not met, but rather
- * the expecations of the client were not met by the server.
+ * the expectations of the client were not met by the server.
  *
  * @uses AWeberException
  * @package
@@ -20,7 +20,7 @@ class AweberOauthDataMissing extends AweberException
     public function __construct($missing)
     {
         if (!is_array($missing)) {
-            $missing = array($missing);
+            $missing = [$missing];
         }
         $this->missing = $missing;
         $required = join(', ', $this->missing);

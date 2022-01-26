@@ -1,10 +1,11 @@
-# Laravel + Aweber
+[![Latest Version on Packagist](https://img.shields.io/packagist/v/codegreencreative/laravel-aweber.svg?style=flat-square)](https://packagist.org/packages/codegreencreative/laravel-aweber)
+[![Total Downloads](https://img.shields.io/packagist/dt/codegreencreative/laravel-aweber.svg?style=flat-square)](https://packagist.org/packages/codegreencreative/laravel-aweber)
+
+# Laravel 5.7+ Aweber API Adapter
 
 This package allows you to easily use the Aweber API using Laravel. You must first have created an Aweber App using their developer website.
 
 Create your Aweber App: https://www.aweber.com/users/apps
-
-This package does not assume you will be connecting to your customers Aweber accounts. It is meant to connect to your own Aweber account and manage your own lists and subscribers.
 
 ## Installation
 
@@ -117,7 +118,7 @@ $list = Aweber::lists()->load($list_id);
 // Will return the orignal list object returned by Aweber
 $list->setList;
 
-// This will return an array containing up to 500 tags 
+// This will return an array containing up to 500 tags
 // sorted by descending popularity.
 $tags = $list->tags;
 // Get total subscribed subscribers for a list
@@ -135,6 +136,7 @@ $subscribers = $list->total_unsubscribed_subscribers;
 ```
 
 #### Subscribers
+
 ```php
 // Paginate all subscribers on a list
 // $start integer default 0
@@ -151,16 +153,17 @@ $subscriber = Aweber::subscribers()
 $list->setList;
 
 // Add a subscriber to a list
-$subscriber = Aweber::subscribers()->setList($list_id)->add([
-    'custom_fields' => [
-        'field' => 'value',
-    ],
-    'email' => 'test@test.com',
-    'name' => 'Test Test',
-    'strict_custom_fields' => true,
-    'tags' => [
-    ]
-]);
+$subscriber = Aweber::subscribers()
+    ->setList($list_id)
+    ->add([
+        'custom_fields' => [
+            'field' => 'value',
+        ],
+        'email' => 'test@test.com',
+        'name' => 'Test Test',
+        'strict_custom_fields' => true,
+        'tags' => [],
+    ]);
 
 // Move a subscriber from one list to another
 $subscriber = Aweber::subscribers()
@@ -169,11 +172,23 @@ $subscriber = Aweber::subscribers()
 $subscriber->move($destination_list_id);
 ```
 
+## Connect to consumer accounts
+
+If you wish to connect to your clients Aweber accounts, you can do so by updating the consumer token and secret via the `setConsumer` method per the following example:
+
+```php
+$subscriber = AweberFacade::subscribers()
+    ->setConsumer($consumer_client_id, $consumer_client_secret)
+    ->setList($lead_bucket->list_id)
+    ->find('test@example.com');
+```
+
 ## Disclaimer
 
 This package does not implement all functions of the Aweber API. Use at your own discretion.
 
 ## Contribution Guide
+
 Should you add functionality to this package, please create a pull request. Code additions will only be considered through pull requests.
 
 Code written must be compatible with Laravel 4.1+ and PHP 5.3+.

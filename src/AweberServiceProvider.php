@@ -2,17 +2,14 @@
 
 namespace CodeGreenCreative\Aweber;
 
+use Illuminate\Support\Facades\Route;
+use Illuminate\Support\ServiceProvider;
+
 /**
  * The service provider for laravel-aweber
  *
  * @license MIT
  */
-
-use Illuminate\Contracts\Events\Dispatcher;
-use Illuminate\Routing\Router;
-use Illuminate\Support\Facades\Route;
-use Illuminate\Support\ServiceProvider;
-
 class AweberServiceProvider extends ServiceProvider
 {
     /**
@@ -63,14 +60,13 @@ class AweberServiceProvider extends ServiceProvider
      */
     public function offerPublishing()
     {
-        $app = $this->app;
-
-        if (version_compare($app::VERSION, '5.0') < 0) {
-            \Config::package('codegreencreative/laravel-aweber', 'laravel-aweber');
-        } elseif ($this->app->runningInConsole()) {
-            $this->publishes(array(
-                __DIR__ . '/../config/aweber.php' => config_path('aweber.php'),
-            ), 'aweber_config');
+        if ($this->app->runningInConsole()) {
+            $this->publishes(
+                [
+                    __DIR__ . '/../config/aweber.php' => config_path('aweber.php'),
+                ],
+                'aweber_config'
+            );
         }
     }
 
@@ -86,7 +82,7 @@ class AweberServiceProvider extends ServiceProvider
     public function registerFacades()
     {
         $this->app->singleton('aweber', function ($app) {
-            return new Aweber;
+            return new Aweber();
         });
     }
 
@@ -100,7 +96,8 @@ class AweberServiceProvider extends ServiceProvider
         Route::name('aweber.')
             ->prefix('aweber')
             ->namespace('CodeGreenCreative\Aweber\Http\Controllers')
-            ->middleware('web')->group(function () {
+            ->middleware('web')
+            ->group(function () {
                 $this->loadRoutesFrom(__DIR__ . '/../routes/web.php');
             });
     }
@@ -112,9 +109,7 @@ class AweberServiceProvider extends ServiceProvider
     private function registerCommands()
     {
         if ($this->app->runningInConsole()) {
-            $this->commands(array(
-                '\CodeGreenCreative\Aweber\Console\AweberAuthorize',
-            ));
+            $this->commands(['\CodeGreenCreative\Aweber\Console\AweberAuthorize']);
         }
     }
 
@@ -125,6 +120,6 @@ class AweberServiceProvider extends ServiceProvider
      */
     public function provides()
     {
-        return array('laravel-aweber');
+        return ['laravel-aweber'];
     }
 }
