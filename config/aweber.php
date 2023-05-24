@@ -69,7 +69,7 @@ return [
     | Scopes
     |--------------------------------------------------------------------------
     |
-    | When you authorize an OAuth2 integration you are required to tell AWeber
+    | When you authorize an OAuth integration you are required to tell AWeber
     | what sorts of things your integration will need access to. These are called
     | scopes.
     |

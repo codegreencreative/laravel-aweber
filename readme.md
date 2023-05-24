@@ -23,7 +23,7 @@ php artisan vendor:publish --tag="aweber_config"
 
 ## Config
 
-This Laravel + Aweber package will help you with OAuth2 authorization. By simply updating the `aweber.php` published config file, you can start making API calls to Aweber to manage your lists and subscribers.
+This Laravel + Aweber package will help you with OAuth authorization. By simply updating the `aweber.php` published config file, you can start making API calls to Aweber to manage your lists and subscribers.
 
 By supplying your Aweber username (email address) and password along with your client id and client secret and redirect URL when you created your Aweber App, the OAuth flow is automated. The token to make API calls are stored in your default cache driver, but can be changed in your ENV.
 
