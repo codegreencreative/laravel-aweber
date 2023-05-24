@@ -14,6 +14,16 @@
 return [
     /*
     |--------------------------------------------------------------------------
+    | Account ID
+    |--------------------------------------------------------------------------
+    |
+    | account_id is the account ID of the default Aweber account.
+    |
+    */
+    'account_id' => env('AWEBER_ACCOUNT_ID', null),
+
+    /*
+    |--------------------------------------------------------------------------
     | Client ID
     |--------------------------------------------------------------------------
     |
@@ -64,7 +74,7 @@ return [
     | scopes.
     |
     */
-    'scopes' => array(
+    'scopes' => [
         'account.read',
         'list.read',
         'list.write',
@@ -72,8 +82,8 @@ return [
         'subscriber.write',
         'email.read',
         'email.write',
-        'subscriber.read-extended'
-    ),
+        'subscriber.read-extended',
+    ],
 
     /*
     |--------------------------------------------------------------------------
@@ -96,5 +106,5 @@ return [
     | If true, no exception will be thrown when an Aweber response is empty
     |
      */
-    'allow_empty' => env('AWEBER_ALLOW_EMPTY', true)
+    'allow_empty' => env('AWEBER_ALLOW_EMPTY', true),
 ];

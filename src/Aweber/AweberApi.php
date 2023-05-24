@@ -17,7 +17,7 @@ class AweberApi extends AweberApiBase
     /**
      * @var String Consumer Key
      */
-    public $consumerKey    = false;
+    public $consumerKey = false;
 
     /**
      * @var String Consumer Secret
@@ -36,7 +36,9 @@ class AweberApi extends AweberApiBase
      */
     public static function getDataFromAweberID($string)
     {
-        list($consumerKey, $consumerSecret, $requestToken, $tokenSecret, $verifier) = AweberApi::_parseAweberID($string);
+        list($consumerKey, $consumerSecret, $requestToken, $tokenSecret, $verifier) = AweberApi::_parseAweberID(
+            $string
+        );
 
         if (!$verifier) {
             return null;
@@ -46,7 +48,7 @@ class AweberApi extends AweberApiBase
         $aweber->adapter->user->tokenSecret = $tokenSecret;
         $aweber->adapter->user->verifier = $verifier;
         list($accessToken, $accessSecret) = $aweber->getAccessToken();
-        return array($consumerKey, $consumerSecret, $accessToken, $accessSecret);
+        return [$consumerKey, $consumerSecret, $accessToken, $accessSecret];
     }
 
     protected static function _parseAWeberID($string)
@@ -71,7 +73,7 @@ class AweberApi extends AweberApiBase
     public function __construct($key, $secret)
     {
         // Load key / secret
-        $this->consumerKey    = $key;
+        $this->consumerKey = $key;
         $this->consumerSecret = $secret;
 
         $this->setAdapter();
@@ -86,10 +88,9 @@ class AweberApi extends AweberApiBase
     public function getAuthorizeUrl()
     {
         $requestToken = $this->user->requestToken;
-        return (empty($requestToken)) ?
-            $this->adapter->app->getAuthorizeUrl()
-                :
-            $this->adapter->app->getAuthorizeUrl() . "?oauth_token={$this->user->requestToken}";
+        return empty($requestToken)
+            ? $this->adapter->app->getAuthorizeUrl()
+            : $this->adapter->app->getAuthorizeUrl() . "?oauth_token={$this->user->requestToken}";
     }
 
     /**
@@ -118,16 +119,24 @@ class AweberApi extends AweberApiBase
      */
     public function getAccount($token = false, $secret = false)
     {
-        if ($token && $secret) {
-            $user = new OauthUser();
-            $user->accessToken = $token;
-            $user->tokenSecret = $secret;
-            $this->adapter->user = $user;
-        }
-
         $body = $this->adapter->request('GET', '/accounts');
         $accounts = $this->readResponse($body, '/accounts');
         return $accounts[0];
+    }
+
+    /**
+     * Set the user for the adapter
+     *
+     * @param string $access_token
+     * @param string $access_secret
+     * @return void
+     */
+    public function setUser(string $access_token, string $access_secret)
+    {
+        $user = new OauthUser();
+        $user->accessToken = $access_token;
+        $user->tokenSecret = $access_secret;
+        $this->adapter->user = $user;
     }
 
     /**
@@ -152,7 +161,7 @@ class AweberApi extends AweberApiBase
     public function getRequestToken($callbackUrl)
     {
         $requestToken = $this->adapter->getRequestToken($callbackUrl);
-        return array($requestToken, $this->user->tokenSecret);
+        return [$requestToken, $this->user->tokenSecret];
     }
 
     /**

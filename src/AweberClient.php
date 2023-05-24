@@ -17,6 +17,8 @@ class AweberClient
     protected $token;
     protected $account_id;
     protected $aweber_api;
+    protected $token_key;
+    protected $token_secret;
 
     /**
      * [methodName description]
@@ -29,6 +31,7 @@ class AweberClient
         $this->oauth_url = 'https://auth.aweber.com/1.0/oauth';
 
         $this->store = config('laravel-aweber::cache', config('aweber.cache', null));
+        $this->account_id = config('laravel-aweber::account_id', config('aweber.account_id', null));
         $this->client_id = config('laravel-aweber::client_id', config('aweber.client_id', null));
         $this->client_secret = config('laravel-aweber::client_secret', config('aweber.client_secret', null));
         $this->token_key = config('laravel-aweber::token_key', config('aweber.token_key', null));
@@ -53,14 +56,20 @@ class AweberClient
      *
      * @param string $token
      * @param string $secret
+     * @param int $account_id
      * @return self
      */
-    public function setConsumer(string $token, string $secret): self
+    public function setConsumer(string $token, string $secret, int $account_id = null): self
     {
-        $aweber_account = $this->aweber_api->getAccount($token, $secret);
-        $this->account_id = $aweber_account->data['id'];
-        // Transform base URI
-        $this->base_uri = $this->api_url . $aweber_account->url . '/';
+        $this->account_id = $account_id;
+        $this->aweber_api->setUser($token, $secret);
+
+        if (is_null($account_id)) {
+            $aweber_account = $this->aweber_api->getAccount($token, $secret);
+            $this->account_id = $aweber_account->data['id'];
+        }
+
+        $this->base_uri = $this->api_url . "/accounts/{$this->account_id}/";
 
         return $this;
     }
