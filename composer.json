@@ -4,10 +4,10 @@
     "homepage": "https://codegreencreative.com/",
     "license": "MIT",
     "require": {
-        "php": "^7.1|^8.1",
+        "php": "^7.2.5|^8.1",
         "ext-json": "*",
         "ext-hash": "*",
-        "laravel/framework": "^5.7|^5.8|^6.0|^7.0|^8.0|^9.0|^10.0"
+        "laravel/framework": "^6.0|^7.0|^8.0|^9.0|^10.0"
     },
     "autoload": {
         "psr-4": {
