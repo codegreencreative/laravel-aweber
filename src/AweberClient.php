@@ -61,7 +61,7 @@ class AweberClient
      */
     public function setConsumer(string $token, string $secret, int $account_id = null): self
     {
-        $this->account_id = $account_id;
+        $this->account_id = $this->account_id ?: $account_id;
         $this->aweber_api->setUser($token, $secret);
 
         if (is_null($account_id)) {
