@@ -1,11 +1,22 @@
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/codegreencreative/laravel-aweber.svg?style=flat-square)](https://packagist.org/packages/codegreencreative/laravel-aweber)
 [![Total Downloads](https://img.shields.io/packagist/dt/codegreencreative/laravel-aweber.svg?style=flat-square)](https://packagist.org/packages/codegreencreative/laravel-aweber)
 
-# Laravel 5.7+ Aweber API Adapter
+# Laravel ^6.0|^7.0|^8.0|^9.0|^10.0 Aweber API Adapter
 
 This package allows you to easily use the Aweber API using Laravel. You must first have created an Aweber App using their developer website.
 
 Create your Aweber App: https://www.aweber.com/users/apps
+
+# Latest Changes
+
+Version 1.2.0
+
+-   Added support for Laravel 7.0
+-   Added support for Laravel 8.0
+-   Added support for Laravel 9.0
+-   Added support for Laravel 10.0
+-   Fixed an issue where for every API call, an additional call to retrieve an account for a given token and secret is being made. If you pass an account ID when setting the consumer (`setConsumer`), it will no longer make that additional API call.
+-   Updated the README file with more detailed instructions on how to use the library.
 
 ## Installation
 
@@ -25,7 +36,7 @@ php artisan vendor:publish --tag="aweber_config"
 
 This Laravel + Aweber package will help you with OAuth authorization. By simply updating the `aweber.php` published config file, you can start making API calls to Aweber to manage your lists and subscribers.
 
-By supplying your Aweber username (email address) and password along with your client id and client secret and redirect URL when you created your Aweber App, the OAuth flow is automated. The token to make API calls are stored in your default cache driver, but can be changed in your ENV.
+By supplying your Aweber username (email address) and password along with your client id and client secret and redirect URL when you created your Aweber App, the OAuth flow is automated. The token to make API calls are stored in your default cache driver but can be changed in your ENV.
 
 ## Code Examples
 
@@ -174,14 +185,18 @@ $subscriber->move($destination_list_id);
 
 ## Connect to consumer accounts
 
-If you wish to connect to your clients Aweber accounts, you can do so by updating the consumer token and secret via the `setConsumer` method per the following example:
+If you wish to connect to your client's Aweber accounts, you can do so by updating the consumer token and secret via the `setConsumer` method per the following example:
 
 ```php
 $subscriber = AweberFacade::subscribers()
-    ->setConsumer($consumer_client_id, $consumer_client_secret)
+    ->setConsumer($consumer_client_id, $consumer_client_secret, $account_id = null)
     ->setList($lead_bucket->list_id)
     ->find('test@example.com');
 ```
+
+In version 1.2.0, you can pass an optional $account_id to the `setConsumer` method to connect to a specific account. This is useful if you have multiple accounts under your developer account or OAuth to connect to customer accounts.
+
+```php
 
 ## Disclaimer
 
@@ -192,3 +207,4 @@ This package does not implement all functions of the Aweber API. Use at your own
 Should you add functionality to this package, please create a pull request. Code additions will only be considered through pull requests.
 
 Code written must be compatible with Laravel 4.1+ and PHP 5.3+.
+```
